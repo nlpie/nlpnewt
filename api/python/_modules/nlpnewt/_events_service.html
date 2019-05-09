@@ -1,0 +1,479 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nlpnewt._events_service &mdash; nlpnewt development0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> nlpnewt
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                development0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../nlpnewt.html">nlpnewt</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">nlpnewt</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>nlpnewt._events_service</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for nlpnewt._events_service</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2019 Regents of the University of Minnesota.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;Internal events service client&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures.thread</span> <span class="k">import</span> <span class="n">ThreadPoolExecutor</span>
+
+<span class="kn">import</span> <span class="nn">grpc</span>
+<span class="kn">from</span> <span class="nn">grpc_health.v1</span> <span class="k">import</span> <span class="n">health</span>
+<span class="kn">from</span> <span class="nn">grpc_health.v1</span> <span class="k">import</span> <span class="n">health_pb2_grpc</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">._config</span> <span class="k">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">.api.v1</span> <span class="k">import</span> <span class="n">events_pb2</span><span class="p">,</span> <span class="n">events_pb2_grpc</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EventsServer"><a class="viewcode-back" href="../../nlpnewt.html#nlpnewt.EventsServer">[docs]</a><span class="k">class</span> <span class="nc">EventsServer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Server which hosts events.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    address: str</span>
+<span class="sd">        The address / hostname / IP to host the server on.</span>
+<span class="sd">    port: int</span>
+<span class="sd">        The port to host the server on.</span>
+<span class="sd">    register: bool</span>
+<span class="sd">        Whether to register the service with service discovery.</span>
+<span class="sd">    workers: int, optional</span>
+<span class="sd">        The number of workers that should handle requests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">register</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">EVENTS_SERVICE_NAME</span> <span class="o">+</span> <span class="s2">&quot;-worker&quot;</span>
+        <span class="n">thread_pool</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">workers</span><span class="p">,</span> <span class="n">thread_name_prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="n">server</span> <span class="o">=</span> <span class="n">grpc</span><span class="o">.</span><span class="n">server</span><span class="p">(</span><span class="n">thread_pool</span><span class="p">)</span>
+        <span class="n">servicer</span> <span class="o">=</span> <span class="n">EventsServicer</span><span class="p">()</span>
+        <span class="n">events_pb2_grpc</span><span class="o">.</span><span class="n">add_EventsServicer_to_server</span><span class="p">(</span><span class="n">servicer</span><span class="p">,</span> <span class="n">server</span><span class="p">)</span>
+        <span class="n">health_servicer</span> <span class="o">=</span> <span class="n">health</span><span class="o">.</span><span class="n">HealthServicer</span><span class="p">()</span>
+        <span class="n">health_servicer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;SERVING&#39;</span><span class="p">)</span>
+        <span class="n">health_servicer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">EVENTS_SERVICE_NAME</span><span class="p">,</span> <span class="s1">&#39;SERVING&#39;</span><span class="p">)</span>
+        <span class="n">health_pb2_grpc</span><span class="o">.</span><span class="n">add_HealthServicer_to_server</span><span class="p">(</span><span class="n">health_servicer</span><span class="p">,</span> <span class="n">server</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_port</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">add_insecure_port</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{address}</span><span class="s1">:</span><span class="si">{port}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_address</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register</span> <span class="o">=</span> <span class="n">register</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">port</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the port that the server is listening on.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Bound port.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_port</span>
+
+<div class="viewcode-block" id="EventsServer.start"><a class="viewcode-back" href="../../nlpnewt.html#nlpnewt.EventsServer.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Starts the service.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting events server on address: </span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_address</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_port</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_register</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">nlpnewt._discovery</span> <span class="k">import</span> <span class="n">Discovery</span>
+            <span class="n">service_registration</span> <span class="o">=</span> <span class="n">Discovery</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_deregister</span> <span class="o">=</span> <span class="n">service_registration</span><span class="o">.</span><span class="n">register_events_service</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_address</span><span class="p">,</span>
+                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">_port</span><span class="p">,</span>
+                                                                            <span class="s1">&#39;v1&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EventsServer.stop"><a class="viewcode-back" href="../../nlpnewt.html#nlpnewt.EventsServer.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">grace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;De-registers (if registered with service discovery) the service and immediately stops</span>
+<span class="sd">        accepting requests, completely stopping the service after a specified `grace` time.</span>
+
+<span class="sd">        During the grace period the server will continue to process existing requests, but it will</span>
+<span class="sd">        not accept any new requests. This function is idempotent, multiple calls will shutdown</span>
+<span class="sd">        the server after the soonest grace to expire, calling the shutdown event for all calls to</span>
+<span class="sd">        this function.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        grace: float, optional</span>
+<span class="sd">            The grace period that the server should continue processing requests for shutdown.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        threading.Event</span>
+<span class="sd">            A shutdown event for the server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping events server on address: </span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_address</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_port</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_deregister</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="n">shutdown_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">grace</span><span class="o">=</span><span class="n">grace</span><span class="p">)</span>
+        <span class="n">shutdown_event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">EventsServicer</span><span class="p">(</span><span class="n">events_pb2_grpc</span><span class="o">.</span><span class="n">EventsServicer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">_get_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">event_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">event_id</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">grpc</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">NOT_FOUND</span><span class="p">,</span>
+                               <span class="n">f</span><span class="s2">&quot;Did not find event_id: &#39;</span><span class="si">{event_id}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+        <span class="k">return</span> <span class="n">event</span><span class="p">,</span> <span class="n">event_id</span>
+
+    <span class="k">def</span> <span class="nf">_get_document</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">event</span><span class="p">,</span> <span class="n">event_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_event</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="n">document_name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">document_name</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">document</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">documents</span><span class="p">[</span><span class="n">document_name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">grpc</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">NOT_FOUND</span><span class="p">,</span>
+                               <span class="n">f</span><span class="s2">&quot;Event: &#39;</span><span class="si">{event_id}</span><span class="s2">&#39; does not have document: &#39;</span><span class="si">{document_name}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+        <span class="k">return</span> <span class="n">document</span>
+
+    <span class="k">def</span> <span class="nf">OpenEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">event_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">event_id</span>
+        <span class="k">if</span> <span class="n">event_id</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;event_id was not set.&quot;</span>
+            <span class="n">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">grpc</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">INVALID_ARGUMENT</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span> 
+        <span class="n">create_event</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">create_event</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">create_event</span><span class="p">:</span>
+                    <span class="n">event</span> <span class="o">=</span> <span class="n">_Event</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">create_event</span> <span class="ow">and</span> <span class="n">request</span><span class="o">.</span><span class="n">only_create_new</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;Event already exists: &quot;</span><span class="si">{event_id}</span><span class="s1">&quot;&#39;</span>
+            <span class="n">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">grpc</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">ALREADY_EXISTS</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">clients</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">events_pb2</span><span class="o">.</span><span class="n">OpenEventResponse</span><span class="p">(</span><span class="n">created</span><span class="o">=</span><span class="n">create_event</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">CloseEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">event</span><span class="p">,</span> <span class="n">event_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_event</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">deleted</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">with</span> <span class="n">event</span><span class="o">.</span><span class="n">c_lock</span><span class="p">:</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">clients</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">clients</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span>
+                <span class="n">deleted</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">events_pb2</span><span class="o">.</span><span class="n">CloseEventResponse</span><span class="p">(</span><span class="n">deleted</span><span class="o">=</span><span class="n">deleted</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">GetAllMetadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">event</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_event</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">events_pb2</span><span class="o">.</span><span class="n">GetAllMetadataResponse</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">AddMetadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">event</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_event</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">key</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;event_id cannot be null or empty&#39;</span>
+            <span class="n">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">grpc</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">INVALID_ARGUMENT</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">events_pb2</span><span class="o">.</span><span class="n">AddMetadataResponse</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">AddDocument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">event</span><span class="p">,</span> <span class="n">event_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_event</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">document_name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">document_name</span>
+        <span class="k">if</span> <span class="n">document_name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;document_name was not set.&#39;</span>
+            <span class="n">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">grpc</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">INVALID_ARGUMENT</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">with</span> <span class="n">event</span><span class="o">.</span><span class="n">d_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">document_name</span> <span class="ow">in</span> <span class="n">event</span><span class="o">.</span><span class="n">documents</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;Document &#39;</span><span class="si">{document_name}</span><span class="s2">&#39; already exists.&quot;</span>
+                <span class="n">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">grpc</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">ALREADY_EXISTS</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">documents</span><span class="p">[</span><span class="n">document_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_Document</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">events_pb2</span><span class="o">.</span><span class="n">AddDocumentResponse</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">GetAllDocumentNames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">event</span><span class="p">,</span> <span class="n">event_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_event</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">documents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">events_pb2</span><span class="o">.</span><span class="n">GetAllDocumentNamesResponse</span><span class="p">(</span><span class="n">document_names</span><span class="o">=</span><span class="n">names</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">GetDocumentText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">document</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_document</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">return</span> <span class="n">events_pb2</span><span class="o">.</span><span class="n">GetDocumentTextResponse</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">document</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">AddLabels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">document</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_document</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">labels_field</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">WhichOneof</span><span class="p">(</span><span class="s1">&#39;labels&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">labels_field</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index_name</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">index_name</span>
+            <span class="k">if</span> <span class="n">index_name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;No index_name was set.&#39;</span>
+                <span class="n">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">grpc</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">INVALID_ARGUMENT</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">(</span><span class="n">labels_field</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">labels_field</span><span class="p">))</span>
+        <span class="n">document</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">index_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="k">return</span> <span class="n">events_pb2</span><span class="o">.</span><span class="n">AddLabelsResponse</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">GetLabels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">document</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_document</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">labels_type</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">index_name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;Event: &#39;</span><span class="si">{request.event_id}</span><span class="s2">&#39; document: &#39;</span><span class="si">{request.document_name}</span><span class="s2"> &quot;</span> \
+                <span class="n">f</span><span class="s2">&quot;does not have label index: </span><span class="si">{request.index_name}</span><span class="s2">&#39;&quot;</span>
+            <span class="n">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">grpc</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">NOT_FOUND</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">events_pb2</span><span class="o">.</span><span class="n">GetLabelsResponse</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">labels_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">labels_type</span><span class="p">)</span><span class="o">.</span><span class="n">CopyFrom</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>
+
+
+<span class="k">class</span> <span class="nc">_Event</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clients</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">documents</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">_Document</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<span class="k">def</span> <span class="nf">_set_error_context</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">set_code</span><span class="p">(</span><span class="n">status_code</span><span class="p">)</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">set_details</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Regents of the University of Minnesota
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
