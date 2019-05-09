@@ -17,6 +17,8 @@ title: NLP-NEWT
 email: nlp-ie@umn.edu
 description: >- # this means to ignore newlines until "baseurl:"
   Webpage for the NLP-NEWT (New Environment (Working Title)) project.
+baseurl: "/nlpnewt" # the subpath of your site, e.g. /blog
+url: "https://nlpie.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  nlpie
 
 # Build settings
