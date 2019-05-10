@@ -2,7 +2,7 @@ sections:
   - title: Getting Started
     docs:
       - title: Introduction
-        url: /docs/
+        url: /docs
       - title: Components
         url: /docs/getting-started/components.html
       - title: Data Model

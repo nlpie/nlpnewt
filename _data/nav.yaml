@@ -2,7 +2,7 @@ pages:
   - title: Home
     url: /
   - title: Documentation
-    url: /docs/
+    url: /docs
   - title: Reference
     url: /reference.html
   - title: GitHub
