@@ -17,8 +17,8 @@ title: NEWT
 email: nlp-ie@umn.edu
 description: >- # this means to ignore newlines until "baseurl:"
   New Environment (Working Title)
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "/nlpnewt" # the subpath of your site, e.g. /blog
+url: "https://nlpie.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 
 # Build settings
 markdown: kramdown
