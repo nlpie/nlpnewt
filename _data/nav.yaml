@@ -4,6 +4,6 @@ pages:
   - title: Documentation
     url: /docs
   - title: Reference
-    url: /reference.html
+    url: /api
   - title: GitHub
     url: https://github.com/benknoll-umn/nlpnewt

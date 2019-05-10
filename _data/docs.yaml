@@ -15,5 +15,7 @@ sections:
         url: /docs/tutorials/python.html
       - title: Java
         url: /docs/tutorials/java.html
+      - title: Service Discovery
+        url: /docs/tutorials/service-discovery.html
       - title: API Gateway
         url: /docs/tutorials/api-gateway.html
