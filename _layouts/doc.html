@@ -1,0 +1,24 @@
+---
+layout: default
+---
+<div class="row flex-xl-nowrap">
+  <div class="col-12 col-md-3 col-xl-2">
+    <nav class="nav flex-column">
+      {% for section in site.data.docs.sections %}
+      <span class="navbar-text">
+        {{ section.title }}
+      </span>
+      {% for doc in section.docs %}
+      <a class="nav-link {% if page.url == doc.url %}active{% endif %}" href="{{ doc.url | relative_url }}">
+        {{ doc.title }}
+      </a>
+      {% endfor %}
+      {% endfor %}
+    </nav>
+  </div>
+  <main class="col-md-9 col-xl-8 py-md-3 pl-md-5" role="main">
+    <h1>{{ page.title }}</h1>
+    <p>{{ page.description }}</p>
+    {{ content }}
+  </main>
+</div>
