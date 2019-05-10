@@ -7,8 +7,8 @@ permalink: /api
 
 [Python API Documentation](https://nlpie.github.io/newt-python-api)
 
-[Java API Documentation]({% link api/javadoc/index.html %})
+[Java API Documentation]({{ 'api/javadoc/index.html' | relative_url }})
 
-[API Gateway Events Service]({% link api/swagger/events.html %})
+[API Gateway Events Service]({{ 'api/swagger/events.html' | relative_url }})
 
-[API Gateway Processing Service]({% link api/swagger/processing.html %})
+[API Gateway Processing Service]({{ 'api/swagger/processing.html' | relative_url }})

@@ -10,7 +10,7 @@ subpage: Reference
 window.onload = function() {
   // Begin Swagger UI call region
   const ui = SwaggerUIBundle({
-    url: "{% link '/api/swagger/events.swagger.json' %}",
+    url: "{{ '/api/swagger/events.swagger.json' | relative_url }}",
     dom_id: '#swagger-ui',
     deepLinking: true,
     presets: [
