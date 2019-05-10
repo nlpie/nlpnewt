@@ -15,7 +15,7 @@ each-other.
 The events service is currently a processing cache and not a permanent store.
 It is implemented in Python using an in-memory store.
 
-# Processor
+## Processor
 
 A processor is a component which performs some kind of task on the data in an
  ``Event`` or a ``Document``. NEWT provides functionality for deploying and

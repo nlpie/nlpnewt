@@ -12,7 +12,6 @@ description: Getting started using the NLP-NEWT Python SDK.
 
 ### Installing nlpnewt
 
-
 To install nlpnewt run the following:
 
 ```bash
@@ -78,7 +77,3 @@ To run this pipeline type
 ```bash
 python pipeline.py
 ```
-
-### Interacting with the events service
-
-####

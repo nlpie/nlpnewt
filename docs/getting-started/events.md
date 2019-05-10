@@ -26,23 +26,58 @@ For concurrency reasons, Documents can only be augmented, the text is
 immutable after construction, and the label indices are immutable after being
 added, they cannot be deleted or modified.
 
+## Labeler
+
+The labeler is an object or function that is used to create a new label index
+on the document. It collects labels from the processing component, then when
+the labeler is done, it uploads the labels to the events service.
+
+#### Python
+
+```python
+with document.labeler('sentences') as labeler:
+  for sentence in detect_sentences(document.text):
+    label(sentence.start_index, sentence.end_index)
+```
+
+#### Java
+
+```java
+try (Labeler<GenericLabel> sentencesLabeler = document.getLabeler("sentences")) {
+      for (Span span : SentenceDetector.detectSentences(document.getText())) {
+        sentencesLabeler.add(
+          GenericLabel.newBuilder(span.start(), span.end()).build()
+        );
+      }
+    }
+```
+
 ## LabelIndex
 
 A ``LabelIndex`` is a set of meaningful locations in text and associated
 properties. It provides functionality for filtering and navigation of the Labels
 it holds, which are stored as an array sorted by the label's location in text.
 
-## Labeler
+Using the event service, NEWT allows processors to retrieve and use labels
+created by upstream components.
 
-The labeler is an object or function that is used to create a new label index
-on the document.
+#### Python
 
-### TODO: Add illustrative examples
+```python
+for sentence in document.get_label_index('sentences'):
+  # do work on the sentence
+```
+
+#### Java
+
+```java
+for (GenericLabel sentence : document.getLabelIndex("sentences")) {
+  // do work on the sentence
+}
+```
 
 ## Label
 
 A label is span of text that the system has assigned some kind of importance or
 meaning. Examples could be sentences, part of speech tags, named entities,
 sections, identified concepts, or higher level semantic structures.
-
-### TODO: Add illustrative examples
