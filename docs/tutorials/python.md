@@ -15,7 +15,7 @@ description: Getting started using the NLP-NEWT Python SDK.
 To install nlpnewt run the following:
 
 ```bash
-pip install nlpnewt-[version].tgz
+pip install nlpnewt-{{site.python_version}}.tar.gz
 ```
 
 This is an sdist for now, but will be on PyPi eventually.
@@ -77,3 +77,13 @@ To run this pipeline type
 ```bash
 python pipeline.py
 ```
+
+### Interacting with the Events Service
+
+When you deploy the processor above, the NLP-NEWT framework wraps that processor
+in a gRPC service and server. When it receives a request, it uses the request
+parameters to instantiate the ``Document`` object that gets passed to your
+processor. This ``Document`` object is your interface to the events service.
+
+For more information about the methods that are available, see the
+[API Documentation](https://nlpie.github.io/newt-python-api/nlpnewt.html#nlpnewt.events.Document).
