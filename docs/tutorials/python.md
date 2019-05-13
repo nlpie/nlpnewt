@@ -5,12 +5,12 @@ title: Python Tutorial
 description: Getting started using the NLP-NEWT Python SDK.
 ---
 
-### Requirements
+## Requirements
 
 
 - Python 3.6 or later
 
-### Installing nlpnewt
+## Installing nlpnewt
 
 To install nlpnewt run the following:
 
@@ -20,7 +20,7 @@ pip install nlpnewt-{{site.python_version}}.tar.gz
 
 This is an sdist for now, but will be on PyPi eventually.
 
-### Creating a processor
+## Creating a processor
 
 
 We will be creating a document processor which simply writes a hello world label to a document.
@@ -43,6 +43,8 @@ class HelloProcessor(DocumentProcessor):
 This file receives a request to process a document, and then labels that documents text with
 a hello response.
 
+## Running the processor
+
 To host the processor, run the following commands in terminal windows (they run in the foreground)
 
 ```bash
@@ -55,9 +57,7 @@ In both calls, ``-a`` and ``-p`` are the host and port respectively. ``-e`` is t
 events server, ``-m`` is a python module to load (it will load hello.py) and ``-n`` is the name of
 the processor to launch.
 
-### Running the processor
-
-To run the processor, create another file ``pipeline.py``:
+To perform processing, create another file ``pipeline.py``:
 
 ```python
 import nlpnewt
@@ -78,7 +78,7 @@ To run this pipeline type
 python pipeline.py
 ```
 
-### Interacting with the Events Service
+## Interacting with the Events Service
 
 When you deploy the processor above, the NLP-NEWT framework wraps that processor
 in a gRPC service and server. When it receives a request, it uses the request
