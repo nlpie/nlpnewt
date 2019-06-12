@@ -65,7 +65,7 @@ from nlpnewt import EventsClient, Pipeline, RemoteProcessor
 
 with EventsClient(address='localhost:9090') as client, \
      Pipeline(
-         RemoteProcessor(identifier='hello', address='localhost:9091')
+         RemoteProcessor(processor_id='hello', address='localhost:9091')
      ) as pipeline:
   with Event(event_id='1', client=client) as event:
     document = event.add_document(document_name='name', text='YOUR NAME')
