@@ -38,6 +38,9 @@ class HelloProcessor(DocumentProcessor):
            text = document.text
 
            hello_labeler(0, len(text), response='Hello ' + text + '!')
+
+if __name__ == '__main__':
+   nlpnewt.run_processor(HelloProcessor())
 ```
 
 This file receives a request to process a document, and then labels that documents text with
@@ -48,29 +51,30 @@ a hello response.
 To host the processor, run the following commands in terminal windows (they run in the foreground)
 
 ```bash
-python -m nlpnewt events -a localhost -p 9090
+python -m nlpnewt events --address localhost --port 9090
 
-python -m nlpnewt processor -a localhost -p 9091 -e localhost:9090 -m hello -n hello
+python hello.py --address localhost --port 9091 --events localhost:9090
 ```
-
-In both calls, ``-a`` and ``-p`` are the host and port respectively. ``-e`` is the address for the
-events server, ``-m`` is a python module to load (it will load hello.py) and ``-n`` is the name of
-the processor to launch.
 
 To perform processing, create another file ``pipeline.py``:
 
-```python
-import nlpnewt
+Old:
 
-with nlpnewt.Events('localhost:9090') as events, nlpnewt.Pipeline() as pipeline:
-  pipeline.add_processor('hello', 'localhost:9091')
-  with events.open_event('1') as event:
-    document = event.add_document('name', 'YOUR NAME')
-    pipeline.process_document(document)
+```python
+from nlpnewt import EventsClient, Pipeline, RemoteProcessor
+
+with EventsClient(address='localhost:9090') as client, \
+     Pipeline(
+         RemoteProcessor(identifier='hello', address='localhost:9091')
+     ) as pipeline:
+  with Event(event_id='1', client=client) as event:
+    document = event.add_document(document_name='name', text='YOUR NAME')
+    pipeline.run(document)
     index = document.get_label_index('hello')
     for label in index:
       print(label.response)
 ```
+
 
 To run this pipeline type
 

@@ -9,6 +9,8 @@ sections:
         url: /docs/getting-started/events.html
       - title: Processing
         url: /docs/getting-started/processing.html
+      - title: JSON Serialization
+        url: /docs/getting-started/json-serialization.html
   - title: Tutorials
     docs:
       - title: Python

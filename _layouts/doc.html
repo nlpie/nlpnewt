@@ -9,7 +9,7 @@ layout: default
       {% for section in site.data.docs.sections %}
       <li class="nav-item sidebar-header">
         {% assign page_url = section.docs | where: "url", page.url | first %}
-        <a class="nav-link disabled {% if page_url %}active{% endif %}" href="#">
+        <a class="nav-link disabled {% if page_url %}active{% endif %}">
           {{ section.title }}
         </a>
       </li>
