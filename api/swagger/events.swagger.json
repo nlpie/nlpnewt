@@ -81,6 +81,101 @@
         ]
       }
     },
+    "/v1/events/{event_id}/binaries": {
+      "get": {
+        "operationId": "GetAllBinaryDataNames",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetAllBinaryDataNamesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "event_id",
+            "description": "The unique event identifier.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Events"
+        ]
+      }
+    },
+    "/v1/events/{event_id}/binaries/{binary_data_name}": {
+      "get": {
+        "operationId": "GetBinaryData",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetBinaryDataResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "event_id",
+            "description": "The unique event identifier.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "binary_data_name",
+            "description": "The binary data key.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Events"
+        ]
+      },
+      "post": {
+        "operationId": "AddBinaryData",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AddBinaryDataResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "event_id",
+            "description": "The unique event identifier.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "binary_data_name",
+            "description": "The binary data key.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AddBinaryDataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Events"
+        ]
+      }
+    },
     "/v1/events/{event_id}/documents": {
       "get": {
         "summary": "Returns the names keys of all documents that are stored on an event.",
@@ -172,6 +267,39 @@
             "schema": {
               "$ref": "#/definitions/v1AddDocumentRequest"
             }
+          }
+        ],
+        "tags": [
+          "Events"
+        ]
+      }
+    },
+    "/v1/events/{event_id}/documents/{document_name}/labels": {
+      "get": {
+        "summary": "Returns the names keys of all label indices that are stored on a document.",
+        "operationId": "GetLabelIndicesInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetLabelIndicesInfoResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "event_id",
+            "description": "The unique event identifier.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "document_name",
+            "description": "The document name on the event.",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -334,12 +462,34 @@
     }
   },
   "definitions": {
+    "GetLabelIndicesInfoResponseLabelIndexInfo": {
+      "type": "object",
+      "properties": {
+        "index_name": {
+          "type": "string",
+          "description": "A document-unique identifier for the index on the document."
+        },
+        "type": {
+          "$ref": "#/definitions/LabelIndexInfoLabelIndexType"
+        }
+      }
+    },
+    "LabelIndexInfoLabelIndexType": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "JSON",
+        "OTHER"
+      ],
+      "default": "UNKNOWN",
+      "description": " - UNKNOWN: Default, no labels field set or not known.\n - JSON: Has the \"json_labels\" field set.\n - OTHER: Has the \"other_labels\" field set."
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
         "type_url": {
           "type": "string",
-          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
         },
         "value": {
           "type": "string",
@@ -414,6 +564,29 @@
         }
       },
       "description": "`Value` represents a dynamically typed value which can be either\nnull, a number, a string, a boolean, a recursive struct value, or a\nlist of values. A producer of value is expected to set one of that\nvariants, absence of any variant indicates an error.\n\nThe JSON representation for `Value` is JSON value."
+    },
+    "v1AddBinaryDataRequest": {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "description": "The unique event identifier."
+        },
+        "binary_data_name": {
+          "type": "string",
+          "description": "The binary data key."
+        },
+        "binary_data": {
+          "type": "string",
+          "format": "byte",
+          "description": "The binary data."
+        }
+      },
+      "description": "Request to attach binary data to the event."
+    },
+    "v1AddBinaryDataResponse": {
+      "type": "object",
+      "description": "Response after attaching binary data to the event."
     },
     "v1AddDocumentRequest": {
       "type": "object",
@@ -500,6 +673,18 @@
       },
       "description": "Response from the service for closing events."
     },
+    "v1GetAllBinaryDataNamesResponse": {
+      "type": "object",
+      "properties": {
+        "binary_data_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Response of all the binary names on the event."
+    },
     "v1GetAllDocumentNamesResponse": {
       "type": "object",
       "properties": {
@@ -526,6 +711,16 @@
       },
       "description": "Response from the server for all metadata associated with an event."
     },
+    "v1GetBinaryDataResponse": {
+      "type": "object",
+      "properties": {
+        "binary_data": {
+          "type": "string",
+          "format": "byte",
+          "description": "The binary data."
+        }
+      }
+    },
     "v1GetDocumentTextResponse": {
       "type": "object",
       "properties": {
@@ -535,6 +730,19 @@
         }
       },
       "description": "Response for getting the document text."
+    },
+    "v1GetLabelIndicesInfoResponse": {
+      "type": "object",
+      "properties": {
+        "label_index_infos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GetLabelIndicesInfoResponseLabelIndexInfo"
+          },
+          "description": "Info about each label index on the document."
+        }
+      },
+      "description": "Response of information about the label indices on a document."
     },
     "v1GetLabelsResponse": {
       "type": "object",

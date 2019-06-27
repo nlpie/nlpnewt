@@ -7,7 +7,7 @@ description: Getting started using the NLP-NEWT Java SDK.
 
 ## Requirements
 
-- Python 3.6 or later
+- Python 3.5 or later
 - Oracle or OpenJDK JDK 8
 
 ## Installing nlpnewt
@@ -36,7 +36,7 @@ processor:
 import edu.umn.nlpnewt.*;
 
 @Processor("hello")
-public class Hello extends DocumentProcessorBase {
+public class Hello extends DocumentProcessor {
   @Override
   protected void process(Document document, JsonObject params, JsonObjectBuilder result) {
     try (Labeler<GenericLabel> labeler = document.getLabeler("hello")) {
@@ -46,6 +46,22 @@ public class Hello extends DocumentProcessorBase {
           .setProperty("response", "Hello" + text + "!")
           .build()
       );
+    }
+  }
+
+  public static void main(String[] args) {
+    try {
+      ProcessorServerOptions options = new ProcessorServerOptions(new Hello())
+          .parseArgs(args);
+      Server server = Newt.createProcessorServer(options);
+      server.start();
+      server.blockUntilShutdown();
+    } catch (IOException e) {
+      System.err.println("Failed to start server: " + e.getMessage());
+    } catch (InterruptedException e) {
+      System.err.println("Server interrupted.")
+    } catch (CmdLineException e) {
+      // pass
     }
   }
 }
@@ -75,7 +91,7 @@ python -m nlpnewt events -a localhost -p 9090
 Now we can deploy our Java processor. In another terminal run:
 
 ```bash
-java -cp .:nlpnewt-all-{{ site.version }}.jar edu.umn.nlpnewt.Newt processor -p 9092 -e localhost:9090 Hello
+java -cp .:nlpnewt-all-{{ site.version }}.jar Hello -p 9092 -e localhost:9090
 ```
 
 To perform processing you will either need to create a python pipeline file, or
@@ -86,13 +102,15 @@ use the [API Gateway]({{ '/docs/tutorials/api-gateway.html' | relative_url }})
 To perform processing, create another file ``pipeline.py``:
 
 ```python
-import nlpnewt
+from nlpnewt import EventsClient, Pipeline, RemoteProcessor
 
-with nlpnewt.Events('localhost:9090') as events, nlpnewt.Pipeline() as pipeline:
-  pipeline.add_processor('hello', 'localhost:9092')
-  with events.open_event('1') as event:
-    document = event.add_document('name', 'YOUR NAME')
-    pipeline.process_document(document)
+with EventsClient(address='localhost:9090') as client, \
+     Pipeline(
+         RemoteProcessor(processor_id='hello', address='localhost:9092')
+     ) as pipeline:
+  with Event(event_id='1', client=client) as event:
+    document = event.add_document(document_name='name', text='YOUR NAME')
+    pipeline.run(document)
     index = document.get_label_index('hello')
     for label in index:
       print(label.response)

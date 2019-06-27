@@ -9,7 +9,17 @@ description: >
 
 ## Requirements
 
+- Python 3.5
 - [Consul](https://consul.io)
+- Java JDK 8 (optional)
+
+## Starting consul
+
+To start a local dev instance of consul, run the following:
+
+```bash
+consul agent -dev -ui
+```
 
 ## Starting Services using service discovery
 
@@ -19,9 +29,9 @@ the following commands:
 ```bash
 python -m nlpnewt events --register
 
-python -m nlpnewt processor -m {processor_module} -n {processor_name} --register
+python -m [processor_module] --register
 
-java -cp .:nlpnewt-all-{{ site.version }}.jar edu.umn.nlpnewt.Newt processor --register {processor_class}
+java -cp .:nlpnewt-all-{{ site.version }}.jar [ProcessorClass] --register
 ```
 
 ## Running pipelines using service discovery
@@ -31,13 +41,16 @@ Taken from the
 run this pipeline using service discovery by removing the addresses:
 
 ```python
-import nlpnewt
+from nlpnewt import EventsClient, Pipeline, RemoteProcessor
 
-with nlpnewt.Events() as events, nlpnewt.Pipeline() as pipeline:
-  pipeline.add_processor('hello')
-  with events.open_event('1') as event:
-    document = event.add_document('name', 'YOUR NAME')
-    pipeline.process_document(document)
+
+with EventsClient() as client, \
+     Pipeline(
+         RemoteProcessor(processor_id='hello')
+     ) as pipeline:
+  with Event(event_id='1', client=client) as event:
+    document = event.add_document(document_name='name', text='YOUR NAME')
+    pipeline.run(document)
     index = document.get_label_index('hello')
     for label in index:
       print(label.response)

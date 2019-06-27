@@ -8,7 +8,7 @@ description: Getting started using the NLP-NEWT Python SDK.
 ## Requirements
 
 
-- Python 3.6 or later
+- Python 3.5 or later
 
 ## Installing nlpnewt
 
@@ -57,8 +57,6 @@ python hello.py --address localhost --port 9091 --events localhost:9090
 ```
 
 To perform processing, create another file ``pipeline.py``:
-
-Old:
 
 ```python
 from nlpnewt import EventsClient, Pipeline, RemoteProcessor
