@@ -59,7 +59,7 @@ python hello.py --address localhost --port 9091 --events localhost:9090
 To perform processing, create another file ``pipeline.py``:
 
 ```python
-from nlpnewt import EventsClient, Pipeline, RemoteProcessor
+from nlpnewt import Event, EventsClient, Pipeline, RemoteProcessor
 
 with EventsClient(address='localhost:9090') as client, \
      Pipeline(
