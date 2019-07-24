@@ -66,7 +66,8 @@ with EventsClient(address='localhost:9090') as client, \
          RemoteProcessor(processor_id='hello', address='localhost:9091')
      ) as pipeline:
   with Event(event_id='1', client=client) as event:
-    document = event.add_document(document_name='name', text='YOUR NAME')
+    document = Document(document_name='name', text='YOUR NAME')
+    event.add_document(document)
     pipeline.run(document)
     index = document.get_label_index('hello')
     for label in index:
