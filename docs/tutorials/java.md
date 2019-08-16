@@ -33,7 +33,12 @@ To start, create a file named ``Hello.java``, this file will contain our
 processor:
 
 ```java
-import edu.umn.nlpnewt.*;
+import edu.umn.nlpnewt.common.*;
+import edu.umn.nlpnewt.model.*;
+import edu.umn.nlpnewt.processing.*;
+import org.kohsuke.args4j.*;
+
+import java.io.IOException;
 
 @Processor("hello")
 public class Hello extends DocumentProcessor {
@@ -42,26 +47,27 @@ public class Hello extends DocumentProcessor {
     try (Labeler<GenericLabel> labeler = document.getLabeler("hello")) {
       String text = document.getText();
       labeler.add(
-        GenericLabel.newBuilder(0, text.length())
-          .setProperty("response", "Hello" + text + "!")
-          .build()
+          GenericLabel.newBuilder(0, text.length())
+              .setProperty("response", "Hello " + text + "!")
+              .build()
       );
     }
   }
 
   public static void main(String[] args) {
+    ProcessorServerOptions options = new ProcessorServerOptions();
+    CmdLineParser parser = new CmdLineParser(options);
     try {
-      ProcessorServerOptions options = new ProcessorServerOptions(new Hello())
-          .parseArgs(args);
-      Server server = Newt.createProcessorServer(options);
+      parser.parseArgument(args);
+      Server server = ProcessorServerBuilder.forProcessor(new HelloWorldExample(), options).build();
       server.start();
       server.blockUntilShutdown();
     } catch (IOException e) {
       System.err.println("Failed to start server: " + e.getMessage());
     } catch (InterruptedException e) {
-      System.err.println("Server interrupted.")
+      System.err.println("Server interrupted.");
     } catch (CmdLineException e) {
-      // pass
+      ProcessorServerOptions.printHelp(parser, HelloWorldExample.class, e, null);
     }
   }
 }
