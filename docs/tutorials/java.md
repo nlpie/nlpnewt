@@ -59,7 +59,7 @@ public class Hello extends DocumentProcessor {
     CmdLineParser parser = new CmdLineParser(options);
     try {
       parser.parseArgument(args);
-      Server server = ProcessorServerBuilder.forProcessor(new HelloWorldExample(), options).build();
+      Server server = ProcessorServerBuilder.forProcessor(new Hello(), options).build();
       server.start();
       server.blockUntilShutdown();
     } catch (IOException e) {
@@ -67,7 +67,7 @@ public class Hello extends DocumentProcessor {
     } catch (InterruptedException e) {
       System.err.println("Server interrupted.");
     } catch (CmdLineException e) {
-      ProcessorServerOptions.printHelp(parser, HelloWorldExample.class, e, null);
+      ProcessorServerOptions.printHelp(parser, Hello.class, e, null);
     }
   }
 }
