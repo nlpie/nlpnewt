@@ -108,7 +108,7 @@ use the [API Gateway]({{ '/docs/tutorials/api-gateway.html' | relative_url }})
 To perform processing, create another file ``pipeline.py``:
 
 ```python
-from nlpnewt import Event, EventsClient, Pipeline, RemoteProcessor
+from nlpnewt import Document, Event, EventsClient, Pipeline, RemoteProcessor
 
 with EventsClient(address='localhost:9090') as client, \
      Pipeline(
